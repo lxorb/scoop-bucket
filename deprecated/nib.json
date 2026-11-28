@@ -1,0 +1,67 @@
+{
+    "version": "0.22.5",
+    "description": "Orden, formerly nibeditor: a simple, lightweight markdown editor offering all the features you could ever need.",
+    "homepage": "https://orden.so",
+    "license": "AGPL-3.0-only",
+    "notes": [
+        "Renamed: Orden is the orden package now. Run scoop uninstall nib, then scoop install orden; what nib kept in its persist folder comes over.",
+        "Themes and note history live in '%APPDATA%\\so.orden.Orden', which is junctioned into Scoop's persist directory, so they survive updates and uninstalls."
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/lxorb/orden/releases/download/v0.22.5/Orden-0.22.5-windows-x64-setup.exe#/dl.7z",
+            "hash": "eef0d8633acd4d30656517268a8d545d5d60e0e63e8c30bbc4a8f0837c7e42b7"
+        },
+        "arm64": {
+            "url": "https://github.com/lxorb/orden/releases/download/v0.22.5/Orden-0.22.5-windows-arm64-setup.exe#/dl.7z",
+            "hash": "56b4e6bbc100e481a8f7f491a20479c6f80a9f4a46177bd9a0bd2f01b1e4abcb"
+        }
+    },
+    "pre_install": "Remove-Item \"$dir\\`$*\", \"$dir\\uninstall.exe\" -Force -Recurse -ErrorAction 'Ignore'",
+    "installer": {
+        "script": [
+            "ensure \"$persist_dir\" | Out-Null",
+            "$appdata = \"$env:APPDATA\\so.orden.Orden\"",
+            "if (Test-Path $appdata) {",
+            "    $item = Get-Item -LiteralPath $appdata -Force",
+            "    if ($item.LinkType -eq 'Junction') {",
+            "        # The link alone: Windows PowerShell's Remove-Item follows a junction into what it points at.",
+            "        $item.Delete()",
+            "    } else {",
+            "        Get-ChildItem -LiteralPath $appdata -Force | Move-Item -Destination \"$persist_dir\" -Force",
+            "        Remove-Item -LiteralPath $appdata -Recurse -Force",
+            "    }",
+            "}",
+            "New-Item -Path $appdata -ItemType Junction -Target \"$persist_dir\" | Out-Null"
+        ]
+    },
+    "bin": [
+        "orden.exe"
+    ],
+    "shortcuts": [
+        [
+            "orden.exe",
+            "Orden"
+        ]
+    ],
+    "uninstaller": {
+        "script": [
+            "$appdata = Get-Item -LiteralPath \"$env:APPDATA\\so.orden.Orden\" -Force -ErrorAction 'Ignore'",
+            "# The link alone, so what it points at - the persist folder, kept until --purge - stays.",
+            "if ($appdata.LinkType -eq 'Junction') { $appdata.Delete() } elseif ($appdata) { Remove-Item -LiteralPath $appdata.FullName -Force -Recurse }"
+        ]
+    },
+    "checkver": {
+        "github": "https://github.com/lxorb/orden"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/lxorb/orden/releases/download/v$version/Orden-$version-windows-x64-setup.exe#/dl.7z"
+            },
+            "arm64": {
+                "url": "https://github.com/lxorb/orden/releases/download/v$version/Orden-$version-windows-arm64-setup.exe#/dl.7z"
+            }
+        }
+    }
+}
